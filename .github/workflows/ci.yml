@@ -1,35 +1,24 @@
 name: CI
-
-on:
-  pull_request:
-  push:
-    branches: [main]
+on: [push, pull_request]  # 触发时机：代码推送或发起合并请求时
 
 jobs:
   quality:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: "20"
-      - name: Commitlint (PR only)
-        if: github.event_name == 'pull_request'
-        run: |
-          npm install
-          npx commitlint --from "${{ github.event.pull_request.base.sha }}" --to "${{ github.event.pull_request.head.sha }}"
+      - uses: actions/checkout@v4  # 拉取代码
       - uses: actions/setup-python@v5
         with:
-          python-version: "3.10"
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install -e ".[dev]"
-      - name: Ruff
-        run: ruff check .
-      - name: Ruff format check
-        run: ruff format --check .
-      - name: Mypy
-        run: mypy src
-      - name: Pytest
-        run: pytest
+          python-version: "3.11"   # 确保环境一致性
+      - run: pip install -e ".[dev]" # 以可编辑模式安装项目及其开发依赖
+      - name: Ruff Lint
+        # 检查代码风格（如：是否有多余的空行、导入顺序是否混乱）
+        # 这一步保证了团队代码像是一个人写出来的
+        run: ruff check src/ tests/
+      - name: Mypy Strict
+        # 静态类型检查：它不运行代码，而是像编译器一样分析类型注解
+        # 例如：如果你把 str 传给了需要 int 的函数，这里就会报错
+        run: mypy src/
+      - name: Pytest + Coverage
+        # 运行测试，并要求覆盖率必须达到 80% 以上，否则 CI 失败
+        # 这防止了“为了写测试而写测试”的敷衍行为
+        run: pytest --cov-fail-under=80

@@ -1,13 +1,14 @@
+# tests/test_models.py
 import pytest
-from project_template.models import DocumentMeta
 from pydantic import ValidationError
 
-
-def test_document_meta_accepts_valid_input() -> None:
-    doc = DocumentMeta(source_id="doc-1", title="template")
-    assert doc.title == "template"
+from llm_doc_parser.models import DocumentChunk
 
 
-def test_document_meta_requires_title() -> None:
-    with pytest.raises(ValidationError):
-        DocumentMeta(source_id="doc-1", title="")
+def test_valid_chunk():
+    chunk = DocumentChunk(content="Hello", token_count=1)
+    assert chunk.content == "Hello"
+
+def test_empty_content_fails():
+    with pytest.raises(ValidationError, match="whitespace"):
+        DocumentChunk(content="   ", token_count=0)

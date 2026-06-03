@@ -9,6 +9,7 @@ description = "Template repository for Python projects with CI and quality gates
 readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [
+    "docling>=2.0,<3",
     "pydantic>=2.0",
 ]
 
@@ -21,7 +22,7 @@ dev = [
 ]
 
 [tool.hatch.build.targets.wheel]
-packages = ["src/project_template"]
+packages = ["src/llm_doc_parser"]
 
 [tool.ruff]
 line-length = 88
@@ -36,4 +37,4 @@ strict = true
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 pythonpath = ["src"]
-addopts = "--cov=src/project_template --cov-report=term-missing --cov-fail-under=60"
+addopts = "--cov=llm_doc_parser --cov-report=term-missing --cov-fail-under=60"
