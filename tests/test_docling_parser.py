@@ -1,12 +1,12 @@
 # tests/test_docling_parser.py
 from __future__ import annotations
 
-import pytest
 from pathlib import Path
 
-from llm_doc_parser.parsers.docling_parser import DoclingParser
-from llm_doc_parser.models import ChunkType
+import pytest
 
+from llm_doc_parser.models import ChunkType
+from llm_doc_parser.parsers.docling_parser import DoclingParser
 
 # 准备一个真实的测试 PDF（放在 tests/fixtures/ 下）
 FIXTURE_DIR = Path(__file__).parent / "fixtures"

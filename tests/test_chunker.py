@@ -4,7 +4,7 @@ from __future__ import annotations
 import pytest
 
 from llm_doc_parser.chunker import ChunkingConfig, SemanticChunker
-from llm_doc_parser.models import ChunkType, DocumentChunk
+from llm_doc_parser.models import DocumentChunk
 from llm_doc_parser.tokenizer import TokenCounter
 
 
@@ -34,7 +34,11 @@ def test_short_chunk_preserved(chunker: SemanticChunker) -> None:
 def test_long_chunk_split_at_sentence_boundary(chunker: SemanticChunker) -> None:
     """超长 chunk 应在句子边界切分，不产生断裂"""
     # 全文约 18 tokens（tiktoken），超过 max_tokens=10
-    text = "This is the first sentence. This is the second sentence. This is the third sentence."
+    text = (
+    "This is the first sentence. "
+    "This is the second sentence. "
+    "This is the third sentence."
+)
     source = DocumentChunk(content=text, token_count=0)
     result = chunker.chunk([source])
 
