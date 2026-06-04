@@ -17,6 +17,7 @@ dependencies = [
 dev = [
     "mypy>=1.10",
     "pytest>=8.0",
+    "pytest-asyncio>=0.24",
     "pytest-cov>=5.0",
     "ruff>=0.4",
 ]
@@ -37,4 +38,5 @@ strict = true
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 pythonpath = ["src"]
+asyncio_mode = "auto"
 addopts = "--cov=llm_doc_parser --cov-report=term-missing --cov-fail-under=60"

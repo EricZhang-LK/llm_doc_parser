@@ -9,7 +9,7 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.11"   # 确保环境一致性
-      - run: pip install -e ".[dev]" # 以可编辑模式安装项目及其开发依赖
+      - run: pip install -e ".[dev]"  # 含 pytest-asyncio 等开发依赖
       - name: Ruff Lint
         # 检查代码风格（如：是否有多余的空行、导入顺序是否混乱）
         # 这一步保证了团队代码像是一个人写出来的

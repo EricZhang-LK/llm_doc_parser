@@ -5,9 +5,10 @@ import asyncio
 import time
 from pathlib import Path
 
-from docling.document_converter import DocumentConverter, PdfFormatOption
 from docling.datamodel.base_models import InputFormat
+from docling.datamodel.document import ConversionResult
 from docling.datamodel.pipeline_options import PdfPipelineOptions
+from docling.document_converter import DocumentConverter, PdfFormatOption
 
 from llm_doc_parser.models import ChunkType, DocumentChunk, ParseResult
 from llm_doc_parser.parsers.base import BaseParser
@@ -53,11 +54,11 @@ class DoclingParser(BaseParser):
             warnings=warnings,
         )
 
-    def _convert_sync(self, file_path: Path):
+    def _convert_sync(self, file_path: Path) -> ConversionResult:
         """同步转换方法，供 to_thread 调用"""
         return self._converter.convert(str(file_path))
 
-    def _extract_chunks(self, docling_result) -> list[DocumentChunk]:
+    def _extract_chunks(self, docling_result: ConversionResult) -> list[DocumentChunk]:
         """
         从 Docling 结果中提取分块，映射到 DocumentChunk 契约。
         这里是适配器模式的核心：翻译两种数据模型。
@@ -74,11 +75,12 @@ class DoclingParser(BaseParser):
             # 根据 Docling 的 label 映射到我们的 ChunkType
             chunk_type = self._map_chunk_type(element.label)
 
+            page_no = element.prov[0].page_no if element.prov else 0
             chunks.append(DocumentChunk(
                 content=text,
                 chunk_type=chunk_type,
                 metadata={
-                    "page": element.prov.page_no if element.prov else 0,
+                    "page": page_no,
                     "label": str(element.label),
                 },
                 token_count=len(text) // 4,  # 粗略估算，W3 会替换为精确 tokenizer
@@ -87,14 +89,16 @@ class DoclingParser(BaseParser):
         return chunks
 
     @staticmethod
-    def _map_chunk_type(label: str) -> ChunkType:
+    def _map_chunk_type(label: object) -> ChunkType:
         """Docling label → ChunkType 映射表"""
         mapping = {
             "title": ChunkType.TEXT,
             "section_header": ChunkType.TEXT,
             "paragraph": ChunkType.TEXT,
+            "text": ChunkType.TEXT,
             "table": ChunkType.TABLE,
             "formula": ChunkType.FORMULA,
             "caption": ChunkType.IMAGE_CAPTION,
         }
-        return mapping.get(str(label).lower(), ChunkType.TEXT)
+        label_key = getattr(label, "value", label)
+        return mapping.get(str(label_key).lower(), ChunkType.TEXT)

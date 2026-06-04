@@ -16,7 +16,8 @@ SAMPLE_PDF = FIXTURE_DIR / "sample.pdf"
 @pytest.mark.skipif(not SAMPLE_PDF.exists(), reason="Test fixture not found")
 @pytest.mark.asyncio
 async def test_docling_parser_returns_valid_result():
-    parser = DoclingParser(enable_ocr=False)  # 测试时关闭 OCR 加速
+    # sample.pdf 为扫描件，必须开启 OCR 才能提取文本
+    parser = DoclingParser(enable_ocr=True)
     result = await parser.parse(SAMPLE_PDF)
 
     # 验证契约完整性
