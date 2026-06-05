@@ -16,6 +16,9 @@ from qdrant_client.models import (
     VectorParams,
 )
 
+from llm_doc_parser.models import ChunkType, DocumentChunk
+from llm_doc_parser.vectorstore.base import BaseVectorStore, SearchResult
+
 
 class _QdrantClient(Protocol):
     """qdrant-client 异步接口子集（规避生成代码的类型不完整问题）。"""
@@ -46,9 +49,6 @@ class _QdrantClient(Protocol):
     ) -> list[ScoredPoint]: ...
 
     async def delete_collection(self, collection_name: str) -> bool | None: ...
-
-from llm_doc_parser.models import ChunkType, DocumentChunk
-from llm_doc_parser.vectorstore.base import BaseVectorStore, SearchResult
 
 
 class QdrantVectorStore(BaseVectorStore):
