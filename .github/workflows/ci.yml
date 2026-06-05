@@ -21,4 +21,4 @@ jobs:
       - name: Pytest + Coverage
         # 运行测试，并要求覆盖率必须达到 80% 以上，否则 CI 失败
         # 这防止了“为了写测试而写测试”的敷衍行为
-        run: pytest --cov=llm_doc_parser --cov-report=term-missing --cov-fail-under=80
+        run: pytest -m "not integration" --cov=llm_doc_parser --cov-report=term-missing --cov-fail-under=80

@@ -39,9 +39,21 @@ select = ["E", "F", "I", "N", "UP"]
 
 [tool.mypy]
 strict = true
+explicit_package_bases = true
+mypy_path = "src"
+exclude = ["^(venv|\\.venv)/"]
+files = ["src", "tests"]
+
+[[tool.mypy.overrides]]
+module = "tests.*"
+disallow_untyped_defs = false
+disallow_untyped_calls = false
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 pythonpath = ["src"]
 asyncio_mode = "auto"
 addopts = ""
+markers = [
+    "integration: downloads ML models or needs network (skip in CI)",
+]
