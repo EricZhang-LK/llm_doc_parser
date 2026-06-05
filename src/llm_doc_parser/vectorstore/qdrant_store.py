@@ -20,6 +20,10 @@ from llm_doc_parser.models import ChunkType, DocumentChunk
 from llm_doc_parser.vectorstore.base import BaseVectorStore, SearchResult
 
 
+class _QueryPointsResponse(Protocol):
+    points: list[ScoredPoint]
+
+
 class _QdrantClient(Protocol):
     """qdrant-client 异步接口子集（规避生成代码的类型不完整问题）。"""
 
@@ -39,14 +43,14 @@ class _QdrantClient(Protocol):
         points: list[PointStruct],
     ) -> Any: ...
 
-    async def search(
+    async def query_points(
         self,
         *,
         collection_name: str,
-        query_vector: list[float],
+        query: list[float],
         limit: int,
-        query_filter: Filter | None,
-    ) -> list[ScoredPoint]: ...
+        query_filter: Filter | None = None,
+    ) -> _QueryPointsResponse: ...
 
     async def delete_collection(self, collection_name: str) -> bool | None: ...
 
@@ -67,7 +71,7 @@ class QdrantVectorStore(BaseVectorStore):
         self._collection = collection_name
         self._dimensions = dimensions
         # url=None 时使用内存模式，便于测试；生产环境传入 Qdrant 服务地址
-        # cast: qdrant-client 运行时支持 search，但生成代码的类型桩不完整
+        # cast: 规避 qdrant-client 生成代码的类型桩不完整问题
         if url is None:
             self._client = cast(
                 _QdrantClient, AsyncQdrantClient(location=":memory:")
@@ -128,12 +132,7 @@ class QdrantVectorStore(BaseVectorStore):
         await self._ensure_collection()
 
         qdrant_filter = self._build_filter(filters) if filters else None
-        hits = await self._client.search(
-            collection_name=self._collection,
-            query_vector=query_vector,
-            limit=top_k,
-            query_filter=qdrant_filter,
-        )
+        hits = await self._query_vectors(query_vector, top_k, qdrant_filter)
 
         results: list[SearchResult] = []
         for hit in hits:
@@ -154,6 +153,36 @@ class QdrantVectorStore(BaseVectorStore):
                 metadata={"id": str(hit.id)},
             ))
         return results
+
+    async def _query_vectors(
+        self,
+        query_vector: list[float],
+        top_k: int,
+        qdrant_filter: Filter | None,
+    ) -> list[ScoredPoint]:
+        """
+        向量检索。优先使用 query_points（qdrant-client >= 1.10），
+        回退到 search（旧版客户端）。
+        """
+        if hasattr(self._client, "query_points"):
+            response = await self._client.query_points(
+                collection_name=self._collection,
+                query=query_vector,
+                limit=top_k,
+                query_filter=qdrant_filter,
+            )
+            return list(response.points)
+
+        legacy_client = cast(Any, self._client)
+        return cast(
+            list[ScoredPoint],
+            await legacy_client.search(
+                collection_name=self._collection,
+                query_vector=query_vector,
+                limit=top_k,
+                query_filter=qdrant_filter,
+            ),
+        )
 
     async def delete_all(self) -> None:
         await self._ensure_collection()
