@@ -67,11 +67,15 @@ class QdrantVectorStore(BaseVectorStore):
         self._collection = collection_name
         self._dimensions = dimensions
         # url=None 时使用内存模式，便于测试；生产环境传入 Qdrant 服务地址
+        # cast: qdrant-client 运行时支持 search，但生成代码的类型桩不完整
         if url is None:
-            client: _QdrantClient = AsyncQdrantClient(location=":memory:")
+            self._client = cast(
+                _QdrantClient, AsyncQdrantClient(location=":memory:")
+            )
         else:
-            client = AsyncQdrantClient(url=url, api_key=api_key)
-        self._client = client
+            self._client = cast(
+                _QdrantClient, AsyncQdrantClient(url=url, api_key=api_key)
+            )
         self._initialized = False
 
     async def _ensure_collection(self) -> None:
