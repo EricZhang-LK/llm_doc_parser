@@ -10,7 +10,10 @@ readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [
     "docling>=2.0,<3",
+    "openai>=1.30,<2",
     "pydantic>=2.0",
+    "qdrant-client>=1.9,<2",
+    "tenacity>=8.3,<9",
     "tiktoken>=0.7,<1",
 ]
 
