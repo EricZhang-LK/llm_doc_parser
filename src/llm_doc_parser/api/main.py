@@ -9,7 +9,11 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
 
 from llm_doc_parser.api.schemas import ChatRequest, ChatResponse
+from llm_doc_parser.embeddings.base import BaseEmbedder
 from llm_doc_parser.embeddings.openai_embedder import OpenAIEmbedder
+from llm_doc_parser.embeddings.zhipu_embedder import ZhipuEmbedder
+from llm_doc_parser.llm.base import BaseLLM
+from llm_doc_parser.llm.glm_llm import ZhipuGLM
 from llm_doc_parser.llm.openai_llm import OpenAILLM
 from llm_doc_parser.rag_pipeline import RAGPipeline
 from llm_doc_parser.vectorstore.qdrant_store import QdrantVectorStore
@@ -29,16 +33,37 @@ app.add_middleware(
 # 2. 懒加载初始化 RAG 核心组件（避免启动时阻塞）
 rag_pipeline: RAGPipeline | None = None
 
+def _create_embedder() -> BaseEmbedder:
+
+    return ZhipuEmbedder(
+        model=os.getenv("ZHIPU_EMBEDDING_MODEL", "embedding-3"),
+        dimensions=int(os.getenv("ZHIPU_EMBEDDING_DIMENSIONS", "1024")),
+        api_key=os.getenv("ZHIPU_API_KEY"),
+    )
+    # return OpenAIEmbedder(
+    #     model=os.getenv("OPENAI_EMBEDDING_MODEL", "text-embedding-3-small"),
+    # )
+
+
+def _create_llm() -> BaseLLM:
+
+    return ZhipuGLM(
+        model=os.getenv("GLM_MODEL", "glm-4-flash"),
+        api_key=os.getenv("ZHIPU_API_KEY"),
+        )
+    # return OpenAILLM(model=os.getenv("OPENAI_MODEL", "gpt-4o-mini"))
+
+
 def get_rag_pipeline() -> RAGPipeline:
     global rag_pipeline
     if rag_pipeline is None:
-        embedder = OpenAIEmbedder(model="text-embedding-3-small")
+        embedder = _create_embedder()
         vector_store = QdrantVectorStore(
             collection_name="documents",
-            dimensions=1536,
+            dimensions=embedder.dimensions,
             url=os.getenv("QDRANT_URL", "http://localhost:6333"),
         )
-        llm = OpenAILLM(model="gpt-4o-mini")
+        llm = _create_llm()
         rag_pipeline = RAGPipeline(
             embedder=embedder,
             vector_store=vector_store,
