@@ -7,14 +7,12 @@ WORKDIR /app
 # 安装 uv 工具
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /bin/uv
 
-# 复制项目依赖文件
-COPY pyproject.toml uv.lock ./
+# 复制依赖清单与源码（uv 安装本地包时 hatchling 需要 README 与 src）
+COPY pyproject.toml uv.lock README.md ./
+COPY src/ ./src/
 
 # 使用 uv 同步依赖（只安装生产环境依赖）
 RUN uv sync --frozen --no-dev
-
-# 复制源代码（含 src/llm_doc_parser/prompts/ 模板）
-COPY src/ ./src/
 
 # 设置环境变量
 ENV PYTHONPATH=/app/src

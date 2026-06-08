@@ -1,5 +1,5 @@
 {
-  "name": "project-template-hooks",
+  "name": "llm-doc-parser-hooks",
   "version": "1.0.0",
   "private": true,
   "scripts": {
