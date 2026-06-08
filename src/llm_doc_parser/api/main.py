@@ -10,11 +10,9 @@ from fastapi.responses import StreamingResponse
 
 from llm_doc_parser.api.schemas import ChatRequest, ChatResponse
 from llm_doc_parser.embeddings.base import BaseEmbedder
-from llm_doc_parser.embeddings.openai_embedder import OpenAIEmbedder
 from llm_doc_parser.embeddings.zhipu_embedder import ZhipuEmbedder
 from llm_doc_parser.llm.base import BaseLLM
 from llm_doc_parser.llm.glm_llm import ZhipuGLM
-from llm_doc_parser.llm.openai_llm import OpenAILLM
 from llm_doc_parser.rag_pipeline import RAGPipeline
 from llm_doc_parser.vectorstore.qdrant_store import QdrantVectorStore
 
