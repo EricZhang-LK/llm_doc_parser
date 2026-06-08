@@ -3,9 +3,11 @@ from __future__ import annotations
 
 from pathlib import Path
 from types import SimpleNamespace
+from typing import cast
 from unittest.mock import patch
 
 import pytest
+from docling.datamodel.document import ConversionResult
 
 from llm_doc_parser.models import ChunkType
 from llm_doc_parser.parsers.docling_parser import DoclingParser
@@ -16,7 +18,7 @@ SAMPLE_PDF = FIXTURE_DIR / "sample.pdf"
 
 def _make_docling_result(
     texts: list[tuple[str, str, int]],
-) -> SimpleNamespace:
+) -> ConversionResult:
     """构造最小 Docling ConversionResult 替身，避免依赖真实解析。"""
     text_items = [
         SimpleNamespace(
@@ -26,7 +28,10 @@ def _make_docling_result(
         )
         for content, label, page in texts
     ]
-    return SimpleNamespace(document=SimpleNamespace(texts=text_items))
+    return cast(
+        ConversionResult,
+        SimpleNamespace(document=SimpleNamespace(texts=text_items)),
+    )
 
 
 @pytest.mark.integration
