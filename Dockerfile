@@ -13,9 +13,8 @@ COPY pyproject.toml uv.lock ./
 # 使用 uv 同步依赖（只安装生产环境依赖）
 RUN uv sync --frozen --no-dev
 
-# 复制源代码
+# 复制源代码（含 src/llm_doc_parser/prompts/ 模板）
 COPY src/ ./src/
-COPY prompts/ ./prompts/
 
 # 设置环境变量
 ENV PYTHONPATH=/app/src
